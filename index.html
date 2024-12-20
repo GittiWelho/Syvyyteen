@@ -20,6 +20,7 @@
     <div id="scoreboard">
       <h2>Scoreboard</h2>
       <p>Score: <span id="score">0</span></p>
+      <p id="timer">Time Left: 20s</p>
     </div>
     <div id="leaderboard">
       <h2>Leaderboard</h2>
@@ -29,18 +30,83 @@
     </div>
   </div>
   <script>
+    const patients = [
+      { description: "Unconscious, shallow breathing, no visible bleeding.", correctTriage: "Red" },
+      { description: "Alert, broken arm, minor bleeding.", correctTriage: "Yellow" },
+      { description: "Walking and talking, superficial cuts.", correctTriage: "Green" },
+      { description: "No pulse, unresponsive.", correctTriage: "Black" },
+      { description: "Severe bleeding, weak pulse, and pale.", correctTriage: "Red" },
+      { description: "Minor head injury, alert and responsive.", correctTriage: "Yellow" },
+      { description: "Coughing and talking, small wound on leg.", correctTriage: "Green" },
+      { description: "Non-responsive, shallow breathing, bleeding stopped.", correctTriage: "Red" },
+      { description: "Fractured leg, bleeding controlled, alert.", correctTriage: "Yellow" },
+      { description: "No pulse, severe head trauma.", correctTriage: "Black" }
+    ];
+
     let score = 0;
+    let currentPatientIndex = 0;
+    let patientsSeen = 0;
+    const maxPatients = 10;
+    const timeLimit = 20; // Time limit per patient in seconds
+    let timeRemaining = timeLimit;
+    let timerInterval;
+
+    function loadNewPatient() {
+      if (patientsSeen >= maxPatients) {
+        endGame();
+        return;
+      }
+      currentPatientIndex = Math.floor(Math.random() * patients.length);
+      const patient = patients[currentPatientIndex];
+      document.querySelector("#patient-info p").innerText = `Patient: ${patient.description}`;
+      resetTimer();
+    }
 
     function chooseAction(choice) {
-      const correctChoice = "Red"; // Example for demonstration
+      clearInterval(timerInterval); // Stop the timer when an action is made
+      const correctChoice = patients[currentPatientIndex].correctTriage;
       if (choice === correctChoice) {
         score += 20;
         alert("Correct! +20 points");
       } else {
         alert("Incorrect. Try again!");
       }
+      patientsSeen++;
       document.getElementById("score").innerText = score;
+      loadNewPatient();
     }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timeRemaining = timeLimit;
+      document.getElementById("timer").innerText = `Time Left: ${timeRemaining}s`;
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        document.getElementById("timer").innerText = `Time Left: ${timeRemaining}s`;
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          alert("Time's up! Moving to the next patient.");
+          patientsSeen++;
+          loadNewPatient();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      clearInterval(timerInterval);
+      alert(`Game Over! Your final score is ${score}.`);
+      resetGame();
+    }
+
+    function resetGame() {
+      score = 0;
+      patientsSeen = 0;
+      document.getElementById("score").innerText = score;
+      loadNewPatient();
+    }
+
+    // Load the first patient on page load
+    window.onload = loadNewPatient;
   </script>
 </body>
 </html>
